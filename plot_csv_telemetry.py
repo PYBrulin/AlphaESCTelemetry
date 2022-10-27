@@ -44,25 +44,56 @@ invalid_phaseWireCurrent = df[df["phaseWireCurrent"] == 65535]
 print(invalid_phaseWireCurrent)
 df.drop(invalid_phaseWireCurrent.index, inplace=True)
 
+# convert column to datetime object
+df["time"] = pandas.to_datetime(df["time"], unit="s")
+df.set_index("time", inplace=True)  # set column 'date' to index
 
-# plt.figure()
 list_inputs = df.columns.values.tolist()
 list_inputs.remove("initialValue")
 list_inputs.remove("baleNumber")
 list_inputs.remove("statusCode")
 list_inputs.remove("verifyCode")
 
-row = 1
-for input in list_inputs:
-    plt.subplot(
-        len(list_inputs),
-        1,
-        row,
-    )
-    plt.plot(df[input])
-    plt.xlabel("time")
-    plt.ylabel(input)
-    plt.legend()
 
-    row += 1
+fig, ax = plt.subplots(2, 2, sharex=True, sharey=False)
+fig.suptitle("ESC Telemetry : "+os.path.basename(file), fontsize=16)
+
+i = 1
+# rxThrottle VS outputThrottle VS RPM
+plt.subplot(2, 2, i)
+df["rxThrottle"].plot(label="rxThrottle", legend=True)
+df["outputThrottle"].plot(label="outputThrottle", legend=True)
+df["rpm"].plot(secondary_y=True, label="RPM", legend=True)
+plt.xlabel("time")
+plt.title("rxThrottle VS outputThrottle")
+plt.grid(True)
+
+# voltage
+i += 1
+plt.subplot(2, 2, i)
+df["voltage"].plot(label="voltage", legend=True)
+plt.xlabel("time")
+plt.title("voltage")
+plt.grid(True)
+
+# busbarCurrent VS phaseWireCurrent
+i += 1
+plt.subplot(2, 2, i)
+df["busbarCurrent"].plot(label="busbarCurrent", legend=True)
+df["phaseWireCurrent"].plot(label="phaseWireCurrent", legend=True)
+plt.xlabel("time")
+plt.title("busbarCurrent VS phaseWireCurrent")
+plt.grid(True)
+
+# mosfetTemp VS capacitorTemp
+i += 1
+plt.subplot(2, 2, i)
+df["mosfetTemp"].plot(label="mosfetTemp", legend=True)
+df["capacitorTemp"].plot(secondary_y=True, label="capacitorTemp", legend=True)
+plt.xlabel("time")
+plt.title("mosfetTemp VS capacitorTemp")
+plt.grid(True)
+
+
+plt.tight_layout()
 plt.show()
