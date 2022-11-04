@@ -37,7 +37,7 @@ def tempExtrapo(tempVal):
 
 
 with open(
-    "SerialAlpha-{}.bin".format(datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")),
+    "{}_SerialAlpha.bin".format(datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")),
     "wb",
 ) as f:
     while True:

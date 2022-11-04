@@ -11,7 +11,7 @@ for p in ports:
     print(p.device, p.name, p.product, p.serial_number, p.manufacturer)
     if p.manufacturer == "FTDI":
         port = p.device
-if port is None: 
+if port is None:
     print("No FTDI adapter found")
     sys.exit(1)
 baudrate = 19200  # 115200
@@ -35,9 +35,10 @@ def tempExtrapo(tempVal):
     return 0.0004 * tempVal**2 - 0.6604 * tempVal + 143.48
     # return 0.0001* tempVal**3 - 0.0242*tempVal**2- 0.7327*tempVal + 241.34
 
-init=True
+
+init = True
 with open(
-    "SerialAlpha-{}.csv".format(datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")),
+    "{}_SerialAlpha.csv".format(datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")),
     "w+",
 ) as f:
     while True:
@@ -85,9 +86,11 @@ with open(
                 print(serialArray)
 
                 if init:
-                    f.write(",".join(escTelemetry.keys())+"\n")
+                    f.write(",".join(escTelemetry.keys()) + "\n")
                     init = False
-                f.write(",".join([str(escTelemetry[k]) for k in escTelemetry.keys()])+"\n")
+                f.write(
+                    ",".join([str(escTelemetry[k]) for k in escTelemetry.keys()]) + "\n"
+                )
 
                 # print("=" * 30)
 

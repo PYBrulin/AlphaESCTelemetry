@@ -3,6 +3,10 @@ import pandas
 import numpy
 import sys
 import os
+
+import matplotlib.style as mplstyle
+
+mplstyle.use(["fast"])
 import matplotlib.pyplot as plt
 
 file = sys.argv[1]
@@ -23,7 +27,7 @@ df = pandas.read_csv(
 print(df.isna().sum())
 df.fillna(method="pad", inplace=True)
 
-# REmove corrputed data
+# Remove corrputed data
 invalid_statusCode = df[df["statusCode"] != 0]
 print(invalid_statusCode)
 df.drop(invalid_statusCode.index, inplace=True)
@@ -54,16 +58,42 @@ list_inputs.remove("baleNumber")
 list_inputs.remove("statusCode")
 list_inputs.remove("verifyCode")
 
+# Apply proportionnal gains
+df["busbarCurrent"] = df["busbarCurrent"].apply(lambda x: x * 1e-2)
+df["phaseWireCurrent"] = df["phaseWireCurrent"].apply(lambda x: x * 1e-2)
+df["voltage"] = df["voltage"].apply(lambda x: x * 1e-2)
 
+# Filter data
+df["voltage_filtered"] = df["voltage"].ewm(span=50, adjust=False).mean()
+df["busbarCurrent_filtered"] = df["busbarCurrent"].ewm(span=50, adjust=False).mean()
+
+
+def highlight(indices, ax):
+    i = 0
+    while i < len(indices):
+        ax.axvspan(
+            indices[i] - 0.5,
+            indices[i] + 0.5,
+            facecolor="pink",
+            edgecolor="none",
+            alpha=0.2,
+        )
+        i += 1
+
+
+# Display data
 fig, ax = plt.subplots(2, 2, sharex=True, sharey=False)
-fig.suptitle("ESC Telemetry : "+os.path.basename(file), fontsize=16)
+fig.suptitle("ESC Telemetry : " + os.path.basename(file), fontsize=16)
+plt.get_current_fig_manager().window.showMaximized()
 
 i = 1
 # rxThrottle VS outputThrottle VS RPM
 plt.subplot(2, 2, i)
-df["rxThrottle"].plot(label="rxThrottle", legend=True)
-df["outputThrottle"].plot(label="outputThrottle", legend=True)
+df["rxThrottle"].plot(label="rxThrottle [%]", legend=True)
+df["outputThrottle"].plot(label="outputThrottle [%]", legend=True)
 df["rpm"].plot(secondary_y=True, label="RPM", legend=True)
+# df["statusCode"].plot(secondary_y=True, label="statusCode", legend=True)
+highlight(df[df["statusCode"] > 0].index, ax)
 plt.xlabel("time")
 plt.title("rxThrottle VS outputThrottle")
 plt.grid(True)
@@ -71,16 +101,23 @@ plt.grid(True)
 # voltage
 i += 1
 plt.subplot(2, 2, i)
-df["voltage"].plot(label="voltage", legend=True)
+df["voltage"].plot(label="Voltage [V]", legend=True, ylim=(20, 26))
+df["voltage_filtered"].plot(label="Filtered voltage [V]", legend=True, ylim=(20, 26))
+df["busbarCurrent"].plot(secondary_y=True, label="busbarCurrent [A]", legend=True)
+df["busbarCurrent_filtered"].plot(
+    secondary_y=True, label="Filtered busbarCurrent [A]", legend=True
+)
+highlight(df[df["statusCode"] > 0].index, ax)
 plt.xlabel("time")
-plt.title("voltage")
+plt.title("Battery input")
 plt.grid(True)
 
 # busbarCurrent VS phaseWireCurrent
 i += 1
 plt.subplot(2, 2, i)
-df["busbarCurrent"].plot(label="busbarCurrent", legend=True)
-df["phaseWireCurrent"].plot(label="phaseWireCurrent", legend=True)
+df["busbarCurrent"].plot(label="busbarCurrent [A]", legend=True)
+df["phaseWireCurrent"].plot(label="phaseWireCurrent [A]", legend=True)
+highlight(df[df["statusCode"] > 0].index, ax)
 plt.xlabel("time")
 plt.title("busbarCurrent VS phaseWireCurrent")
 plt.grid(True)
@@ -88,8 +125,9 @@ plt.grid(True)
 # mosfetTemp VS capacitorTemp
 i += 1
 plt.subplot(2, 2, i)
-df["mosfetTemp"].plot(label="mosfetTemp", legend=True)
-df["capacitorTemp"].plot(secondary_y=True, label="capacitorTemp", legend=True)
+df["mosfetTemp"].plot(label="mosfetTemp [°C]", legend=True)
+df["capacitorTemp"].plot(secondary_y=True, label="capacitorTemp [°C]", legend=True)
+highlight(df[df["statusCode"] > 0].index, ax)
 plt.xlabel("time")
 plt.title("mosfetTemp VS capacitorTemp")
 plt.grid(True)

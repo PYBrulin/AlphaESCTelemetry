@@ -2,6 +2,8 @@
 
 ![Output telemetry](2022-10-27T16-08-29.png)
 
+![Output telemetry](2022-10-28T17-13-29.png)
+
 Main source of information regarding this telemetry and the Alpha ESC series comes from the page :https://wiki.paparazziuav.org/wiki/Alpha_esc_with_telemetry_output
 
 > ## About
