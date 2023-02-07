@@ -49,6 +49,9 @@ with open(
                 # sys.stdout.flush()
 
                 escTelemetry["time"] = time.time()
+                escTelemetry["timeFormat"] = time.strftime(
+                    "%Y-%m-%d %H%M%S", time.gmtime(escTelemetry["time"])
+                )
                 escTelemetry["initialValue"] = (
                     (serialArray[0] << 8)
                     + (serialArray[1] << 16)
@@ -81,9 +84,9 @@ with open(
                 escTelemetry["statusCode"] = (serialArray[20] << 8) + serialArray[21]
                 escTelemetry["verifyCode"] = (serialArray[22] << 8) + serialArray[23]
 
-                # print(escTelemetry)
+                print(escTelemetry)
                 # Iterate over key/value pairs in dict and print them
-                print(serialArray)
+                # print(serialArray)
 
                 if init:
                     f.write(",".join(escTelemetry.keys()) + "\n")

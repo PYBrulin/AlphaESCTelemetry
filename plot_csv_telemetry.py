@@ -27,6 +27,14 @@ df = pandas.read_csv(
 print(df.isna().sum())
 df.fillna(method="pad", inplace=True)
 
+# convert column to datetime object
+df["time"] = pandas.to_datetime(df["time"], unit="s")
+df["timeFormat"] = df["time"].dt.strftime("%Y-%m-%d %H%M%S")
+
+# Hypothesis: The messages are sent at the frequency of the motor rotation.
+# Result: Wrong, or the messages are not captured fast enough by the host PC
+df["time_diff"] = df["time"].diff(-1).dt.total_seconds().div(60)
+
 # Remove corrputed data
 invalid_statusCode = df[df["statusCode"] != 0]
 print(invalid_statusCode)
@@ -48,9 +56,7 @@ invalid_phaseWireCurrent = df[df["phaseWireCurrent"] == 65535]
 print(invalid_phaseWireCurrent)
 df.drop(invalid_phaseWireCurrent.index, inplace=True)
 
-# convert column to datetime object
-df["time"] = pandas.to_datetime(df["time"], unit="s")
-df.set_index("time", inplace=True)  # set column 'date' to index
+df.set_index("time", inplace=True)  # set column 'time' to index
 
 list_inputs = df.columns.values.tolist()
 list_inputs.remove("initialValue")
@@ -66,6 +72,10 @@ df["voltage"] = df["voltage"].apply(lambda x: x * 1e-2)
 # Filter data
 df["voltage_filtered"] = df["voltage"].ewm(span=50, adjust=False).mean()
 df["busbarCurrent_filtered"] = df["busbarCurrent"].ewm(span=50, adjust=False).mean()
+
+
+# Save formatted CSV
+df.to_csv(os.path.join(os.path.dirname(file), "out.csv"))
 
 
 def highlight(indices, ax):
