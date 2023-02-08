@@ -1,19 +1,12 @@
-import time
-import serial
-import serial.tools.list_ports as port_list
-import sys
+import datetime
 import os
-import datetime
-
-
-import datetime
 import sys
 import time
 
 import serial
 import serial.tools.list_ports as port_list
 
-from escTransport import *
+from alphaTelemetry import *
 
 # Auto detect FTDI cable
 ports = list(port_list.comports())
@@ -39,14 +32,25 @@ ae = AlphaTelemetry(POLES_N=21)
 _init = True
 _escTelem = {}
 
+if not os.path.isdir(os.path.join(os.path.dirname(__file__), "data")):
+    os.makedirs(os.path.join(os.path.dirname(__file__), "data"))
+
 with open(
-    "{}_AlphaTelemetry.bin".format(
-        datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+    os.path.join(
+        os.path.dirname(__file__),
+        "data",
+        "{}_AlphaTelemetry.bin".format(
+            datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+        ),
     ),
     "wb",
 ) as f_bin, open(
-    "{}_AlphaTelemetry.csv".format(
-        datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+    os.path.join(
+        os.path.dirname(__file__),
+        "data",
+        "{}_AlphaTelemetry.csv".format(
+            datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+        ),
     ),
     "w+",
 ) as f_csv:
@@ -70,17 +74,6 @@ with open(
                 _escTelem["capacitorTemp"] = ae.capacitorTemp
                 _escTelem["statusCode"] = ae.statusCode
                 _escTelem["fault"] = ae.fault
-                print("baleNumber       : {}".format(ae.baleNumber))
-                print("rxThrottle       : {}".format(ae.rxThrottle))
-                print("outputThrottle   : {}".format(ae.outputThrottle))
-                print("rpm              : {}".format(ae.rpm))
-                print("voltage          : {}".format(ae.voltage))
-                print("busbarCurrent    : {}".format(ae.busbarCurrent))
-                print("phaseWireCurrent : {}".format(ae.phaseWireCurrent))
-                print("mosfetTemp       : {}".format(ae.mosfetTemp))
-                print("capacitorTemp    : {}".format(ae.capacitorTemp))
-                print("statusCode       : {}".format(ae.statusCode))
-                print("fault            : {}".format(ae.fault))
 
                 if _init:
                     f_csv.write(",".join(_escTelem.keys()) + "\n")
