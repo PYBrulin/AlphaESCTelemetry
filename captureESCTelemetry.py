@@ -1,3 +1,13 @@
+"""
+Capture, process and store decoded and raw telemtry packets from an Alpha T-Motor ESC.
+Generates two files: 
+    1. One CSV file containing decoded state packets
+    2. One BIN file containing raw telemtry data
+
+Usage:
+    python captureeESCTelemtry.py ./file.bin
+"""
+
 import datetime
 import os
 import sys
@@ -57,8 +67,8 @@ with open(
     try:
         while True:
 
-            r = serialPort.read()
-            ae.capture(r)
+            r = serialPort.read(1)
+            ae.capture(int(r.hex(), 16))
             f_bin.write(r)
 
             if ae.ready:
@@ -73,11 +83,11 @@ with open(
                 _escTelem["mosfetTemp"] = ae.mosfetTemp
                 _escTelem["capacitorTemp"] = ae.capacitorTemp
                 _escTelem["statusCode"] = ae.statusCode
-                _escTelem["fault"] = ae.fault
+                _escTelem["fault"] = int(ae.fault)
 
                 if _init:
                     f_csv.write(",".join(_escTelem.keys()) + "\n")
-                    init = False
+                    _init = False
                 f_csv.write(
                     ",".join([str(_escTelem[k]) for k in _escTelem.keys()]) + "\n"
                 )

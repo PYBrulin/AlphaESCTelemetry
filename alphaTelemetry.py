@@ -126,7 +126,7 @@ class AlphaTelemetry:
             return temp_table[temp_raw]
         return 130
 
-    def calc_checksum(self, data: bytearray, n: int) -> int:
+    def calc_checksum(self, data: bytearray) -> int:
         """Calculate bale checksum
 
         Args:
@@ -137,39 +137,33 @@ class AlphaTelemetry:
             int: Computed checksum
         """
         checksum = 0
-        while n > 1:
-            checksum += data[n]
-            n -= 1
+        for d in data[: ALPHA_ESC_PACKET_SIZE - 2]:
+            checksum += d
         return checksum
 
-    def capture(self, rxbit: bytes) -> None:
+    def capture(self, rxbit: int) -> None:
         """Telemetry acquisition process. Initially focuses on finding the two header bytes and then feeds capture data to the reception buffer.
 
         Args:
             rxbit (bytes): Single byte received
         """
-        self.buf_len = 0
 
         if self.buf_len == 0:
             if rxbit == ALPHA_ESC_B1:
-                # tDebug(1, KNRM "[ ESC ] header 0\r\n")
                 self.rxbuf[0] = rxbit
             else:
-                # tDebug(1, KRED "[ ESC ] BREAK 0\r\n")
                 self.buf_len = 0
 
         elif self.buf_len == 1:
             if rxbit == ALPHA_ESC_B2:
-                # tDebug(1, KNRM "[ ESC ] header 1\r\n")
                 self.rxbuf[1] = rxbit
             else:
-                # tDebug(1, KRED "[ ESC ] BREAK 1\r\n")
                 self.buf_len = 0
 
         else:
             self.rxbuf[self.buf_len] = rxbit
 
-        if self.buf_len == ALPHA_ESC_PACKET_SIZE:
+        if self.buf_len == ALPHA_ESC_PACKET_SIZE - 1:
             self.processBuffer()
             self.buf_len = 0
         else:
@@ -181,7 +175,8 @@ class AlphaTelemetry:
         """
         # check packet integrity
         checksum_received = (self.rxbuf[23] << 8) + self.rxbuf[22]
-        checksum_calculated = self.calc_checksum(self.rxbuf, ALPHA_ESC_PACKET_SIZE - 2)
+        checksum_calculated = self.calc_checksum(self.rxbuf)
+
         if checksum_received == checksum_calculated:
             self._initialValue = (
                 (self.rxbuf[0] << 8)
@@ -189,26 +184,33 @@ class AlphaTelemetry:
                 + (self.rxbuf[2] << 24)
                 + self.rxbuf[3]
             )
-            self._baleNumber = (self.rxbuf[5] << 8) + self.rxbuf[6]
+            self._baleNumber = (self.rxbuf[4] << 8) + self.rxbuf[5]
             self._rxThrottle = (
-                (float)((self.rxbuf[7] << 8) + self.rxbuf[8]) * 100.0 / 1024.0
+                (float)((self.rxbuf[6] << 8) + self.rxbuf[7]) * 100.0 / 1024.0
             )
             self._outputThrottle = (
-                (float)((self.rxbuf[9] << 8) + self.rxbuf[10]) * 100.0 / 1024.0
+                (float)((self.rxbuf[8] << 8) + self.rxbuf[9]) * 100.0 / 1024.0
             )
             self._rpm = (
-                ((self.rxbuf[11] << 8) + self.rxbuf[12]) * 10.0 / (3.0 * self.POLES_N)
+                ((self.rxbuf[10] << 8) + self.rxbuf[11]) * 10.0 / (3.0 * self.POLES_N)
             )
-            self._voltage = (float)((self.rxbuf[13] << 8) + self.rxbuf[14]) / 10.0
-            self._busbarCurrent = (float)((self.rxbuf[15] << 8) + self.rxbuf[16]) / 64.0
+            self._voltage = (float)((self.rxbuf[12] << 8) + self.rxbuf[13]) / 10.0
+            self._busbarCurrent = (float)((self.rxbuf[14] << 8) + self.rxbuf[15]) / 64.0
             self._phaseWireCurrent = (float)(
-                (self.rxbuf[17] << 8) + self.rxbuf[18]
+                (self.rxbuf[16] << 8) + self.rxbuf[17]
             ) / 64.0
-            self._mosfetTemp = self.temperature_decode(self.rxbuf[19])
-            self._capacitorTemp = self.temperature_decode(self.rxbuf[20])
-            self._statusCode = (self.rxbuf[22] << 8) + self.rxbuf[21]
+            self._mosfetTemp = self.temperature_decode(self.rxbuf[18])
+            self._capacitorTemp = self.temperature_decode(self.rxbuf[19])
+            self._statusCode = (self.rxbuf[20] << 8) + self.rxbuf[21]
             self._fault = self._statusCode != 0x00
             self._ready = True
+
+        else:
+            print(
+                "Checksum differs. Received: {} / Computed: {}".format(
+                    checksum_received, checksum_calculated
+                )
+            )
 
 
 if __name__ == "__main__":
@@ -240,12 +242,12 @@ if __name__ == "__main__":
 
     try:
         while True:
-            ae.capture(serialPort.read())
+            ae.capture(int(serialPort.read(1).hex(), 16))
             if ae.ready:
                 print("baleNumber       : {}".format(ae.baleNumber))
-                print("rxThrottle       : {} %".format(ae.rxThrottle))
-                print("outputThrottle   : {} %".format(ae.outputThrottle))
-                print("rpm              : {} RPM".format(ae.rpm))
+                print("rxThrottle       : {:.3f} %".format(ae.rxThrottle))
+                print("outputThrottle   : {:.3f} %".format(ae.outputThrottle))
+                print("rpm              : {:.3f} RPM".format(ae.rpm))
                 print("voltage          : {} V".format(ae.voltage))
                 print("busbarCurrent    : {} A".format(ae.busbarCurrent))
                 print("phaseWireCurrent : {} A".format(ae.phaseWireCurrent))
