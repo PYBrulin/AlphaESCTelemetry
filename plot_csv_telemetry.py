@@ -27,42 +27,38 @@ df = pandas.read_csv(
 print(df.isna().sum())
 df.fillna(method="pad", inplace=True)
 
-# convert column to datetime object
-df["time"] = pandas.to_datetime(df["time"], unit="s")
-df["timeFormat"] = df["time"].dt.strftime("%Y-%m-%d %H%M%S")
+if "time" in df.keys():
+    # convert column to datetime object
+    df["time"] = pandas.to_datetime(df["time"], unit="s")
+    df["timeFormat"] = df["time"].dt.strftime("%Y-%m-%d %H%M%S")
 
-# Hypothesis: The messages are sent at the frequency of the motor rotation.
-# Result: Wrong, or the messages are not captured fast enough by the host PC
-df["time_diff"] = df["time"].diff(-1).dt.total_seconds().div(60)
+    # Hypothesis: The messages are sent at the frequency of the motor rotation.
+    # Result: Wrong, or the messages are not captured fast enough by the host PC
+    df["time_diff"] = df["time"].diff(-1).dt.total_seconds().div(60)
 
 # Remove corrputed data
-invalid_statusCode = df[df["statusCode"] != 0]
-print(invalid_statusCode)
-df.drop(invalid_statusCode.index, inplace=True)
+# invalid_statusCode = df[df["statusCode"] != 0]
+# print(invalid_statusCode)
+# df.drop(invalid_statusCode.index, inplace=True)
 
-invalid_initialValue = df[df["initialValue"] != 18258690]
-print(invalid_initialValue)
-df.drop(invalid_initialValue.index, inplace=True)
+# invalid_outputThrottle = df[df["outputThrottle"] > 100]
+# print(invalid_outputThrottle)
+# df.drop(invalid_outputThrottle.index, inplace=True)
 
-invalid_outputThrottle = df[df["outputThrottle"] > 100]
-print(invalid_outputThrottle)
-df.drop(invalid_outputThrottle.index, inplace=True)
+# invalid_busbarCurrent = df[df["busbarCurrent"] > 65000]
+# print(invalid_busbarCurrent)
+# df.drop(invalid_busbarCurrent.index, inplace=True)
 
-invalid_busbarCurrent = df[df["busbarCurrent"] > 65000]
-print(invalid_busbarCurrent)
-df.drop(invalid_busbarCurrent.index, inplace=True)
+# invalid_phaseWireCurrent = df[df["phaseWireCurrent"] == 65535]
+# print(invalid_phaseWireCurrent)
+# df.drop(invalid_phaseWireCurrent.index, inplace=True)
 
-invalid_phaseWireCurrent = df[df["phaseWireCurrent"] == 65535]
-print(invalid_phaseWireCurrent)
-df.drop(invalid_phaseWireCurrent.index, inplace=True)
-
-df.set_index("time", inplace=True)  # set column 'time' to index
+if "time" in df.keys():
+    df.set_index("time", inplace=True)  # set column 'time' to index
+else:
+    df.set_index("baleNumber", inplace=True)  # set column 'time' to index
 
 list_inputs = df.columns.values.tolist()
-list_inputs.remove("initialValue")
-list_inputs.remove("baleNumber")
-list_inputs.remove("statusCode")
-list_inputs.remove("verifyCode")
 
 # Apply proportionnal gains
 df["busbarCurrent"] = df["busbarCurrent"].apply(lambda x: x * 1e-2)
