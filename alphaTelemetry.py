@@ -124,6 +124,8 @@ class AlphaTelemetry:
         """
         if temp_raw in temp_table.keys():
             return temp_table[temp_raw]
+
+        print(temp_raw)
         return 130
 
     def calc_checksum(self, data: bytearray) -> int:
@@ -194,8 +196,8 @@ class AlphaTelemetry:
             self._rpm = (
                 ((self.rxbuf[10] << 8) + self.rxbuf[11]) * 10.0 / (3.0 * self.POLES_N)
             )
-            self._voltage = (float)((self.rxbuf[12] << 8) + self.rxbuf[13]) / 10.0
-            self._busbarCurrent = (float)((self.rxbuf[14] << 8) + self.rxbuf[15]) / 64.0
+            self._voltage = int((self.rxbuf[12] << 8) + self.rxbuf[13]) / 10.0
+            self._busbarCurrent = int((self.rxbuf[14] << 8) + self.rxbuf[15]) / 64.0
             self._phaseWireCurrent = (float)(
                 (self.rxbuf[16] << 8) + self.rxbuf[17]
             ) / 64.0

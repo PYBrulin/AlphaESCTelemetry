@@ -61,9 +61,9 @@ else:
 list_inputs = df.columns.values.tolist()
 
 # Apply proportionnal gains
-df["busbarCurrent"] = df["busbarCurrent"].apply(lambda x: x * 1e-2)
-df["phaseWireCurrent"] = df["phaseWireCurrent"].apply(lambda x: x * 1e-2)
-df["voltage"] = df["voltage"].apply(lambda x: x * 1e-2)
+df["busbarCurrent"] = df["busbarCurrent"].apply(lambda x: x)
+df["phaseWireCurrent"] = df["phaseWireCurrent"].apply(lambda x: x)
+df["voltage"] = df["voltage"].apply(lambda x: x)
 
 # Filter data
 df["voltage_filtered"] = df["voltage"].ewm(span=50, adjust=False).mean()
@@ -99,7 +99,7 @@ df["rxThrottle"].plot(label="rxThrottle [%]", legend=True)
 df["outputThrottle"].plot(label="outputThrottle [%]", legend=True)
 df["rpm"].plot(secondary_y=True, label="RPM", legend=True)
 # df["statusCode"].plot(secondary_y=True, label="statusCode", legend=True)
-highlight(df[df["statusCode"] > 0].index, ax)
+# highlight(df[df["statusCode"] > 0].index, ax)
 plt.xlabel("time")
 plt.title("rxThrottle VS outputThrottle")
 plt.grid(True)
@@ -109,11 +109,13 @@ i += 1
 plt.subplot(2, 2, i)
 df["voltage"].plot(label="Voltage [V]", legend=True, ylim=(20, 26))
 df["voltage_filtered"].plot(label="Filtered voltage [V]", legend=True, ylim=(20, 26))
-df["busbarCurrent"].plot(secondary_y=True, label="busbarCurrent [A]", legend=True)
-df["busbarCurrent_filtered"].plot(
-    secondary_y=True, label="Filtered busbarCurrent [A]", legend=True
+df["busbarCurrent"].plot(
+    secondary_y=True, label="busbarCurrent [A]", legend=True, ylim=(0, 60)
 )
-highlight(df[df["statusCode"] > 0].index, ax)
+df["busbarCurrent_filtered"].plot(
+    secondary_y=True, label="Filtered busbarCurrent [A]", legend=True, ylim=(0, 60)
+)
+# highlight(df[df["statusCode"] > 0].index, ax)
 plt.xlabel("time")
 plt.title("Battery input")
 plt.grid(True)
@@ -121,9 +123,9 @@ plt.grid(True)
 # busbarCurrent VS phaseWireCurrent
 i += 1
 plt.subplot(2, 2, i)
-df["busbarCurrent"].plot(label="busbarCurrent [A]", legend=True)
-df["phaseWireCurrent"].plot(label="phaseWireCurrent [A]", legend=True)
-highlight(df[df["statusCode"] > 0].index, ax)
+df["busbarCurrent"].plot(label="busbarCurrent [A]", legend=True, ylim=(0, 60))
+df["phaseWireCurrent"].plot(label="phaseWireCurrent [A]", legend=True, ylim=(0, 60))
+# highlight(df[df["statusCode"] > 0].index, ax)
 plt.xlabel("time")
 plt.title("busbarCurrent VS phaseWireCurrent")
 plt.grid(True)
@@ -133,7 +135,7 @@ i += 1
 plt.subplot(2, 2, i)
 df["mosfetTemp"].plot(label="mosfetTemp [°C]", legend=True)
 df["capacitorTemp"].plot(secondary_y=True, label="capacitorTemp [°C]", legend=True)
-highlight(df[df["statusCode"] > 0].index, ax)
+# highlight(df[df["statusCode"] > 0].index, ax)
 plt.xlabel("time")
 plt.title("mosfetTemp VS capacitorTemp")
 plt.grid(True)

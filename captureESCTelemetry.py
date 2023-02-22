@@ -66,31 +66,31 @@ with open(
 ) as f_csv:
     try:
         while True:
-
             r = serialPort.read(1)
-            ae.capture(int(r.hex(), 16))
-            f_bin.write(r)
+            if r:
+                ae.capture(int(r.hex(), 16))
+                f_bin.write(r)
 
-            if ae.ready:
-                _escTelem["time"] = time.time()
-                _escTelem["baleNumber"] = ae.baleNumber
-                _escTelem["rxThrottle"] = ae.rxThrottle
-                _escTelem["outputThrottle"] = ae.outputThrottle
-                _escTelem["rpm"] = ae.rpm
-                _escTelem["voltage"] = ae.voltage
-                _escTelem["busbarCurrent"] = ae.busbarCurrent
-                _escTelem["phaseWireCurrent"] = ae.phaseWireCurrent
-                _escTelem["mosfetTemp"] = ae.mosfetTemp
-                _escTelem["capacitorTemp"] = ae.capacitorTemp
-                _escTelem["statusCode"] = ae.statusCode
-                _escTelem["fault"] = int(ae.fault)
+                if ae.ready:
+                    _escTelem["time"] = time.time()
+                    _escTelem["baleNumber"] = ae.baleNumber
+                    _escTelem["rxThrottle"] = ae.rxThrottle
+                    _escTelem["outputThrottle"] = ae.outputThrottle
+                    _escTelem["rpm"] = ae.rpm
+                    _escTelem["voltage"] = ae.voltage
+                    _escTelem["busbarCurrent"] = ae.busbarCurrent
+                    _escTelem["phaseWireCurrent"] = ae.phaseWireCurrent
+                    _escTelem["mosfetTemp"] = ae.mosfetTemp
+                    _escTelem["capacitorTemp"] = ae.capacitorTemp
+                    _escTelem["statusCode"] = ae.statusCode
+                    _escTelem["fault"] = int(ae.fault)
 
-                if _init:
-                    f_csv.write(",".join(_escTelem.keys()) + "\n")
-                    _init = False
-                f_csv.write(
-                    ",".join([str(_escTelem[k]) for k in _escTelem.keys()]) + "\n"
-                )
+                    if _init:
+                        f_csv.write(",".join(_escTelem.keys()) + "\n")
+                        _init = False
+                    f_csv.write(
+                        ",".join([str(_escTelem[k]) for k in _escTelem.keys()]) + "\n"
+                    )
     except KeyboardInterrupt:
         serialPort.close()
         sys.exit(0)
