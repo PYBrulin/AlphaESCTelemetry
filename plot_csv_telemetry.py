@@ -1,6 +1,4 @@
-import glob
 import pandas
-import numpy
 import sys
 import os
 
@@ -35,6 +33,8 @@ if "time" in df.keys():
     # Hypothesis: The messages are sent at the frequency of the motor rotation.
     # Result: Wrong, or the messages are not captured fast enough by the host PC
     df["time_diff"] = df["time"].diff(-1).dt.total_seconds().div(60)
+    df["time_freq"] = df["time_diff"].apply(lambda x: 1 / abs(x))
+
 
 # Remove corrputed data
 # invalid_statusCode = df[df["statusCode"] != 0]
@@ -133,8 +133,9 @@ plt.grid(True)
 # mosfetTemp VS capacitorTemp
 i += 1
 plt.subplot(2, 2, i)
-df["mosfetTemp"].plot(label="mosfetTemp [°C]", legend=True)
-df["capacitorTemp"].plot(secondary_y=True, label="capacitorTemp [°C]", legend=True)
+df["time_freq"].plot(label="mosfetTemp [°C]", legend=True)
+# df["mosfetTemp"].plot(label="mosfetTemp [°C]", legend=True)
+# df["capacitorTemp"].plot(secondary_y=True, label="capacitorTemp [°C]", legend=True)
 # highlight(df[df["statusCode"] > 0].index, ax)
 plt.xlabel("time")
 plt.title("mosfetTemp VS capacitorTemp")

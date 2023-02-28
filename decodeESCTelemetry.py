@@ -9,7 +9,7 @@ import argparse
 import os
 import sys
 
-from alphaTelemetry import *
+from alphaTelemetry import AlphaTelemetry
 
 ap = argparse.ArgumentParser()
 ap.add_argument(
@@ -82,5 +82,4 @@ with open(args.bin_file, "rb") as f_bin, open(
                     ",".join([str(_escTelem[k]) for k in _escTelem.keys()]) + "\n"
                 )
     except KeyboardInterrupt:
-        serialPort.close()
         sys.exit(0)

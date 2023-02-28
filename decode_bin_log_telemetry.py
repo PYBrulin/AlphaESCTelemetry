@@ -1,9 +1,5 @@
-import time
-import serial
-import serial.tools.list_ports as port_list
 import sys
 import os
-import datetime
 import pandas
 
 if not os.path.exists(sys.argv[1]):

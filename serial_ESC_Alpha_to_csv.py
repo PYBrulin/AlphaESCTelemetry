@@ -2,7 +2,6 @@ import time
 import serial
 import serial.tools.list_ports as port_list
 import sys
-import os
 import datetime
 
 ports = list(port_list.comports())
