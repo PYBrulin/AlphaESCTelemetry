@@ -133,9 +133,9 @@ plt.grid(True)
 # mosfetTemp VS capacitorTemp
 i += 1
 plt.subplot(2, 2, i)
-df["time_freq"].plot(label="mosfetTemp [°C]", legend=True)
-# df["mosfetTemp"].plot(label="mosfetTemp [°C]", legend=True)
-# df["capacitorTemp"].plot(secondary_y=True, label="capacitorTemp [°C]", legend=True)
+# df["time_freq"].plot(label="mosfetTemp [°C]", legend=True)
+df["mosfetTemp"].plot(label="mosfetTemp [°C]", legend=True)
+df["capacitorTemp"].plot(label="capacitorTemp [°C]", legend=True)
 # highlight(df[df["statusCode"] > 0].index, ax)
 plt.xlabel("time")
 plt.title("mosfetTemp VS capacitorTemp")

@@ -213,9 +213,7 @@ class AlphaTelemetry:
                 int((self.rxbuf[8] << 8) + self.rxbuf[9]) * 100.0 / 1024.0
             )
             self._rpm = (
-                int((self.rxbuf[10] << 8) + self.rxbuf[11])
-                * 10.0
-                / (3.0 * self.POLES_N)
+                int((self.rxbuf[10] << 8) + self.rxbuf[11]) * 10.0 / self.POLES_N
             )
             self._voltage = int((self.rxbuf[12] << 8) + self.rxbuf[13]) / 10.0
             self._busbarCurrent = int((self.rxbuf[14] << 8) + self.rxbuf[15]) / 64.0
