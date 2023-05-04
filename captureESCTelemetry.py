@@ -37,7 +37,12 @@ serialPort = serial.Serial(
     stopbits=serial.STOPBITS_ONE,
 )
 
-ae = AlphaTelemetry(POLES_N=21)
+# Pass argv integer to set number of poles
+if len(sys.argv) > 1:
+    ae = AlphaTelemetry(POLES_N=int(sys.argv[1]))
+else:
+    # Default to 21 poles
+    ae = AlphaTelemetry(POLES_N=21)
 
 _init = True
 _escTelem = {}

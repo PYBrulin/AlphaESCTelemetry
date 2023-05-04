@@ -51,6 +51,7 @@ class AlphaTelemetry:
             (U8II: 36N42P -> 21 magnet pairs).
         """
         self.POLES_N = POLES_N
+        print(f"POLES_N={POLES_N}")
         self.buf_len = 0
         self.rxbuf = bytearray(ALPHA_ESC_PACKET_SIZE)
         self._baleNumber = 0
