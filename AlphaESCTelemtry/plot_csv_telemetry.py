@@ -1,8 +1,8 @@
-import pandas
-import sys
 import os
+import sys
 
 import matplotlib.style as mplstyle
+import pandas
 
 mplstyle.use(["fast"])
 import matplotlib.pyplot as plt
@@ -125,6 +125,10 @@ i += 1
 plt.subplot(2, 2, i)
 df["busbarCurrent"].plot(label="busbarCurrent [A]", legend=True, ylim=(0, 60))
 df["phaseWireCurrent"].plot(label="phaseWireCurrent [A]", legend=True, ylim=(0, 60))
+((df["phaseWireCurrent"] / (3**0.5)) * (6 * 4.2 / df["voltage"])).plot(
+    label="phaseWireCurrent /(3**.5) [A]", legend=True, ylim=(0, 60)
+)
+
 # highlight(df[df["statusCode"] > 0].index, ax)
 plt.xlabel("time")
 plt.title("busbarCurrent VS phaseWireCurrent")

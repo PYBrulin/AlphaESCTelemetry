@@ -1,7 +1,8 @@
+import os
+
+import matplotlib.pyplot as plt
 import numpy
 import pandas
-import os
-import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
 # # Forces matplotlib to use Type 1 fonts
@@ -23,11 +24,11 @@ file_U8II_phase_fault = os.path.join(
 
 file_sim = os.path.join(
     os.path.expanduser("~/OneDrive - ESTACA/These PYBrulin/SIMULATION/simple_AlphaESC"),
-    "Alpha60AU8II-MF2815_000_export-2023-05-04T08-08-50.csv",
+    "Alpha60AU8II-MF2815_000_export-2023-05-11T13-20-14.csv",
 )
 
 
-def read_file(file):
+def read_file(file) -> pandas.DataFrame:
     df = pandas.read_csv(
         file,
         sep=",",

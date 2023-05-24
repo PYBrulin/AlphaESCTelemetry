@@ -1,3 +1,5 @@
+from typing import Union
+
 # fmt: off
 # Note: deactivate black formatter temporarily
 # temperature decoding table
@@ -73,32 +75,32 @@ class AlphaTelemetry:
         return self._baleNumber
 
     @property
-    def rxThrottle(self) -> int | float:
+    def rxThrottle(self) -> Union[int, float]:
         """Percentage of throttle input"""
         return self._rxThrottle
 
     @property
-    def outputThrottle(self) -> int | float:
+    def outputThrottle(self) -> Union[int, float]:
         """Percentage of throttle output"""
         return self._outputThrottle
 
     @property
-    def rpm(self) -> int | float:
+    def rpm(self) -> Union[int, float]:
         """Mechanical rotor speed"""
         return self._rpm
 
     @property
-    def voltage(self) -> int | float:
+    def voltage(self) -> Union[int, float]:
         """Input voltage of the ESC"""
         return self._voltage
 
     @property
-    def busbarCurrent(self) -> int | float:
+    def busbarCurrent(self) -> Union[int, float]:
         """Current drawn in the busbar"""
         return self._busbarCurrent
 
     @property
-    def phaseWireCurrent(self) -> int | float:
+    def phaseWireCurrent(self) -> Union[int, float]:
         """Current drawn in the phase"""
         return self._phaseWireCurrent
 
@@ -233,7 +235,7 @@ class AlphaTelemetry:
             )
 
 
-if __name__ == "__main__":
+def main():
     import sys
 
     import serial
@@ -279,3 +281,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         serialPort.close()
         sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()

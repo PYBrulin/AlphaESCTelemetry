@@ -16,7 +16,7 @@ import time
 import serial
 import serial.tools.list_ports as port_list
 
-from alphaTelemetry import AlphaTelemetry, ALPHA_ESC_BAUD
+from AlphaESCTelemtry.alphaTelemetry import ALPHA_ESC_BAUD, AlphaTelemetry
 
 # Auto detect FTDI cable
 ports = list(port_list.comports())

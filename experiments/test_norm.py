@@ -11,6 +11,7 @@ import pandas
 
 file = sys.argv[1]
 if not os.path.exists(file):
+    print(f"File {file} does not exist")
     sys.exit(1)
 
 df = pandas.read_csv(

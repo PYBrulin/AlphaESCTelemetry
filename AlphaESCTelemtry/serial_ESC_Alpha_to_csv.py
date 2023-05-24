@@ -1,8 +1,9 @@
+import datetime
+import sys
 import time
+
 import serial
 import serial.tools.list_ports as port_list
-import sys
-import datetime
 
 ports = list(port_list.comports())
 port = None
