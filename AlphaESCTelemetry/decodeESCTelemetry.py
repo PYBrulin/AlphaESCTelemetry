@@ -1,8 +1,8 @@
 """
-Decode an existing binary files containing raw telemtry packets capture from an Alpha T-Motor ESC
+Decode an existing binary files containing raw telemetry packets capture from an Alpha T-Motor ESC
 
 Usage:
-    python decodeESCTelemtry.py ./file.bin
+    python decodeESCTelemetry.py ./file.bin
 """
 
 import argparse
@@ -11,7 +11,7 @@ import sys
 
 import pandas
 
-from AlphaESCTelemtry.alphaTelemetry import AlphaTelemetry, temp_table
+from AlphaESCTelemetry.alphaTelemetry import AlphaTelemetry, temp_table
 
 
 def tempExtrapo(temp_raw) -> int:

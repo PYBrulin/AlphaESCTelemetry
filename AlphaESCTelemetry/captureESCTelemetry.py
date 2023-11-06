@@ -1,11 +1,12 @@
 """
-Capture, process and store decoded and raw telemtry packets from an Alpha T-Motor ESC.
+Capture, process and store decoded and raw telemetry packets from an Alpha T-Motor ESC.
 Generates two files:
     1. One CSV file containing decoded state packets
-    2. One BIN file containing raw telemtry data
+    2. One BIN file containing raw telemetry data
+The script will automatically detect an FTDI cable and use it to capture telemetry packets.
 
 Usage:
-    python captureeESCTelemtry.py ./file.bin
+    python captureESCTelemetry.py [POLES_N (default: 21)]
 """
 
 import datetime
@@ -16,7 +17,7 @@ import time
 import serial
 import serial.tools.list_ports as port_list
 
-from AlphaESCTelemtry.alphaTelemetry import ALPHA_ESC_BAUD, AlphaTelemetry
+from alphaTelemetry import ALPHA_ESC_BAUD, AlphaTelemetry
 
 # Auto detect FTDI cable
 ports = list(port_list.comports())

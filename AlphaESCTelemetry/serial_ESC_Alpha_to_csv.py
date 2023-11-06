@@ -1,3 +1,8 @@
+"""
+[Deprecated] Use captureESCTelemetry.py instead
+Decode telemetry stream from Alpha ESC and store it in a CSV file
+"""
+
 import datetime
 import sys
 import time

@@ -1,3 +1,10 @@
+"""
+Simple CSV reader for Alpha ESC telemetry data.
+
+Usage:
+    python plot_csv_telemetry.py ./file.csv
+"""
+
 import os
 import sys
 
@@ -33,8 +40,10 @@ if "time" in df.keys():
     # Hypothesis: The messages are sent at the frequency of the motor rotation.
     # Result: Wrong, or the messages are not captured fast enough by the host PC
     df["time_diff"] = df["time"].diff(-1).dt.total_seconds().div(60)
-    df["time_freq"] = df["time_diff"].apply(lambda x: 1 / abs(x))
-
+    try:
+        df["time_freq"] = df["time_diff"].apply(lambda x: 1 / abs(x))
+    except ZeroDivisionError:
+        pass
 
 # Remove corrputed data
 # invalid_statusCode = df[df["statusCode"] != 0]

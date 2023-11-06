@@ -1,11 +1,16 @@
-# Script to load a binary file and transmit it over serial port to simulate a telemetry stream
+"""
+Script to load a binary file and transmit it over a serial port to simulate a telemetry stream
+
+Usage:
+    python replay_telemetry.py ./file.bin
+"""
 
 import os
 import sys
 import time
 import serial
 import serial.tools.list_ports as port_list
-from AlphaESCTelemtry.alphaTelemetry import ALPHA_ESC_BAUD
+from AlphaESCTelemetry.alphaTelemetry import ALPHA_ESC_BAUD
 import argparse
 from tqdm import tqdm
 
