@@ -33,7 +33,7 @@ def read_file(file) -> pandas.DataFrame:
 
     # Fill NaN with the value from last row
     print(df.isna().sum())
-    df.fillna(method="pad", inplace=True)
+    df.ffill(inplace=True)
 
     if "time" in df.keys():
         # convert column to datetime object

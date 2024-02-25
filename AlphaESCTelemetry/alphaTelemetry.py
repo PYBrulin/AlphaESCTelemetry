@@ -1,3 +1,4 @@
+import logging
 from typing import Union
 
 # fmt: off
@@ -53,7 +54,6 @@ class AlphaTelemetry:
             (U8II: 36N42P -> 21 magnet pairs).
         """
         self.POLES_N = POLES_N
-        print(f"POLES_N={POLES_N}")
         self.buf_len = 0
         self.rxbuf = bytearray(ALPHA_ESC_PACKET_SIZE)
         self._baleNumber = 0
@@ -133,7 +133,8 @@ class AlphaTelemetry:
         return True
 
     # decodes raw temperature reading
-    def temperature_decode(self, temp_raw: int) -> int:
+    @classmethod
+    def temperature_decode(cls, temp_raw: int) -> int:
         """Decodes the temperature by matching the value returned by the ESC
         in the mapping table temp_table
 
@@ -146,7 +147,6 @@ class AlphaTelemetry:
         if temp_raw in temp_table.keys():
             return temp_table[temp_raw]
 
-        print(temp_raw)
         return 130
 
     def calc_checksum(self, data: bytearray) -> int:
@@ -202,22 +202,11 @@ class AlphaTelemetry:
         checksum_calculated = self.calc_checksum(self.rxbuf)
 
         if checksum_received == checksum_calculated:
-            self._initialValue = (
-                (self.rxbuf[0] << 8)
-                + (self.rxbuf[1] << 16)
-                + (self.rxbuf[2] << 24)
-                + self.rxbuf[3]
-            )
+            self._initialValue = (self.rxbuf[0] << 8) + (self.rxbuf[1] << 16) + (self.rxbuf[2] << 24) + self.rxbuf[3]
             self._baleNumber = (self.rxbuf[4] << 8) + self.rxbuf[5]
-            self._rxThrottle = (
-                int((self.rxbuf[6] << 8) + self.rxbuf[7]) * 100.0 / 1024.0
-            )
-            self._outputThrottle = (
-                int((self.rxbuf[8] << 8) + self.rxbuf[9]) * 100.0 / 1024.0
-            )
-            self._rpm = (
-                int((self.rxbuf[10] << 8) + self.rxbuf[11]) * 10.0 / self.POLES_N
-            )
+            self._rxThrottle = int((self.rxbuf[6] << 8) + self.rxbuf[7]) * 100.0 / 1024.0
+            self._outputThrottle = int((self.rxbuf[8] << 8) + self.rxbuf[9]) * 100.0 / 1024.0
+            self._rpm = int((self.rxbuf[10] << 8) + self.rxbuf[11]) * 10.0 / self.POLES_N
             self._voltage = int((self.rxbuf[12] << 8) + self.rxbuf[13]) / 10.0
             self._busbarCurrent = int((self.rxbuf[14] << 8) + self.rxbuf[15]) / 64.0
             self._phaseWireCurrent = int((self.rxbuf[16] << 8) + self.rxbuf[17]) / 64.0
@@ -228,60 +217,4 @@ class AlphaTelemetry:
             self._ready = True
 
         else:
-            print(
-                "Checksum differs. Received: {} / Computed: {}".format(
-                    checksum_received, checksum_calculated
-                )
-            )
-
-
-def main():
-    import sys
-
-    import serial
-    import serial.tools.list_ports as port_list
-
-    # Auto detect FTDI cable
-    ports = list(port_list.comports())
-    port = None
-    for p in ports:
-        print(p.device, p.name, p.product, p.serial_number, p.manufacturer)
-        if p.manufacturer == "FTDI":
-            port = p.device
-    if port is None:
-        print("No FTDI adapter found")
-        sys.exit(1)
-
-    serialPort = serial.Serial(
-        port=port,
-        baudrate=ALPHA_ESC_BAUD,
-        bytesize=8,
-        timeout=1,
-        stopbits=serial.STOPBITS_ONE,
-    )
-
-    ae = AlphaTelemetry(POLES_N=21)
-
-    try:
-        while True:
-            ae.capture(int(serialPort.read(1).hex(), 16))
-            if ae.ready:
-                print("baleNumber       : {}".format(ae.baleNumber))
-                print("rxThrottle       : {:.3f} %".format(ae.rxThrottle))
-                print("outputThrottle   : {:.3f} %".format(ae.outputThrottle))
-                print("rpm              : {:.3f} RPM".format(ae.rpm))
-                print("voltage          : {} V".format(ae.voltage))
-                print("busbarCurrent    : {} A".format(ae.busbarCurrent))
-                print("phaseWireCurrent : {} A".format(ae.phaseWireCurrent))
-                print("mosfetTemp       : {} °C".format(ae.mosfetTemp))
-                print("capacitorTemp    : {} °C".format(ae.capacitorTemp))
-                print("statusCode       : {}".format(ae.statusCode))
-                print("fault            : {}".format(ae.fault))
-                print("_____________________________")
-    except KeyboardInterrupt:
-        serialPort.close()
-        sys.exit(0)
-
-
-if __name__ == "__main__":
-    main()
+            logging.error("Checksum differs. Received: {} / Computed: {}".format(checksum_received, checksum_calculated))

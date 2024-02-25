@@ -11,16 +11,7 @@ import sys
 
 import pandas
 
-from AlphaESCTelemetry.alphaTelemetry import AlphaTelemetry, temp_table
-
-
-def tempExtrapo(temp_raw) -> int:
-    # return 0.0001* tempVal**3 - 0.0242*tempVal**2- 0.7327*tempVal + 241.34
-    if temp_raw in temp_table.keys():
-        return temp_table[temp_raw]
-
-    print(temp_raw)
-    return 130
+from AlphaESCTelemetry.alphaTelemetry import AlphaTelemetry
 
 
 def decode_binary(file_path: str, verbose: bool = False, poles=21) -> pandas.DataFrame:
@@ -35,84 +26,63 @@ def decode_binary(file_path: str, verbose: bool = False, poles=21) -> pandas.Dat
             if byte == b"\x9b":
                 serialArray = b"\x9b" + f.read(23)
 
-                if len(serialArray) == 24:
-                    # sys.stdout.flush()
+                if len(serialArray) != 24:
+                    continue
 
-                    escTelemetry["initialValue"] = (
-                        (serialArray[0] << 8)
-                        + (serialArray[1] << 16)
-                        + (serialArray[2] << 24)
-                        + serialArray[3]
-                    )
-                    escTelemetry["baleNumber"] = (serialArray[4] << 8) + serialArray[5]
-                    escTelemetry["rxThrottle"] = (
-                        (int((serialArray[6] << 8) + serialArray[7])) * 100.0 / 1024.0
-                    )
-                    escTelemetry["outputThrottle"] = (
-                        int((serialArray[8] << 8) + serialArray[9]) * 100.0 / 1024.0
-                    )
-                    escTelemetry["rpm"] = (
-                        int((serialArray[10] << 8) + serialArray[11]) * 10.0 / poles
-                    )
-                    escTelemetry["voltage"] = (
-                        int((serialArray[12] << 8) + serialArray[13]) / 10.0
-                    )
-                    # escTelemetry["busbarCurrent"] = int_val = int.from_bytes(
-                    #     serialArray[14:16], "little", signed=True
-                    # )
-                    escTelemetry["busbarCurrent"] = (
-                        int(serialArray[14] << 8) + serialArray[15]
-                    ) / 64.0
-                    # escTelemetry["phaseWireCurrent"] = int.from_bytes(
-                    #     serialArray[16:18], "little", signed=True
-                    # )
-                    escTelemetry["phaseWireCurrent"] = (
-                        int((serialArray[16] << 8) + serialArray[17]) / 64.0
-                    )
-                    escTelemetry["mosfetTemp"] = tempExtrapo(serialArray[18])
-                    escTelemetry["capacitorTemp"] = tempExtrapo(serialArray[19])
-                    escTelemetry["statusCode"] = (serialArray[20] << 8) + serialArray[
-                        21
-                    ]
-                    escTelemetry["fault"] = escTelemetry["statusCode"] != 0x00
+                # sys.stdout.flush()
 
-                    if escTelemetry["initialValue"] != 18258690:
-                        continue
+                escTelemetry["initialValue"] = (
+                    (serialArray[0] << 8) + (serialArray[1] << 16) + (serialArray[2] << 24) + serialArray[3]
+                )
+                escTelemetry["baleNumber"] = (serialArray[4] << 8) + serialArray[5]
+                escTelemetry["rxThrottle"] = (int((serialArray[6] << 8) + serialArray[7])) * 100.0 / 1024.0
+                escTelemetry["outputThrottle"] = int((serialArray[8] << 8) + serialArray[9]) * 100.0 / 1024.0
+                escTelemetry["rpm"] = int((serialArray[10] << 8) + serialArray[11]) * 10.0 / poles
+                escTelemetry["voltage"] = int((serialArray[12] << 8) + serialArray[13]) / 10.0
+                # escTelemetry["busbarCurrent"] = int_val = int.from_bytes(serialArray[14:16], "little", signed=True)
+                escTelemetry["busbarCurrent"] = (int(serialArray[14] << 8) + serialArray[15]) / 64.0
+                # escTelemetry["phaseWireCurrent"] = int.from_bytes(serialArray[16:18], "little", signed=True)
+                escTelemetry["phaseWireCurrent"] = int((serialArray[16] << 8) + serialArray[17]) / 64.0
+                escTelemetry["mosfetTemp"] = AlphaTelemetry.temperature_decode(serialArray[18])
+                escTelemetry["capacitorTemp"] = AlphaTelemetry.temperature_decode(serialArray[19])
+                escTelemetry["statusCode"] = (serialArray[20] << 8) + serialArray[21]
+                escTelemetry["fault"] = escTelemetry["statusCode"] != 0x00
 
-                    # print(escTelemetry)
-                    # Iterate over key/value pairs in dict and print them
-                    if verbose:
-                        print(serialArray)
-                        for key, value in escTelemetry.items():
-                            print(key, " : ", value)
+                if escTelemetry["initialValue"] != 18258690:
+                    continue
 
-                        print("=" * 30)
+                # Iterate over key/value pairs in dict and print them
+                if verbose:
+                    print(serialArray)
+                    for key, value in escTelemetry.items():
+                        print(key, " : ", value)
 
-                    df = pandas.DataFrame([escTelemetry])
-                    output = pandas.concat([output, df], ignore_index=True)
+                    print("=" * 30)
+
+                df = pandas.DataFrame([escTelemetry])
+                output = pandas.concat([output, df], ignore_index=True)
 
     return output
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser()
+if __name__ == "__main__":
+    ap = argparse.ArgumentParser(
+        description="Decode an existing binary files containing raw telemetry packets capture from an Alpha T-Motor ESC"
+    )
     ap.add_argument(
-        "-f",
-        "--file",
+        "bin_file",
         type=str,
-        dest="bin_file",
-        required=True,
         default="",
         help="Load specific weights into the model. Doing so will overwrite the training phase.",
     )
     ap.add_argument(
         "-v",
         "--verbose",
-        type=bool,
+        action="store_true",
         dest="verbose",
         required=False,
         default=False,
-        help="Display processed data in terminal.",
+        help="Print telemetry data to stdout.",
     )
     ap.add_argument(
         "-o",
@@ -180,8 +150,6 @@ def main() -> None:
                     if _init:
                         f_csv.write(",".join(_escTelem.keys()) + "\n")
                         _init = False
-                    f_csv.write(
-                        ",".join([str(_escTelem[k]) for k in _escTelem.keys()]) + "\n"
-                    )
+                    f_csv.write(",".join([str(_escTelem[k]) for k in _escTelem.keys()]) + "\n")
         except KeyboardInterrupt:
             sys.exit(0)

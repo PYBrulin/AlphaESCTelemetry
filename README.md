@@ -29,14 +29,15 @@ python captureESCTelemetry.py [POLES_N (default=21)]
 
 ## Usage
 
-List of scripts available in the `AlphaESCTelemetry` folder installed by this package:
+| Script                     | Description                                                                                        |
+| -------------------------- | -------------------------------------------------------------------------------------------------- |
+| `captureESCTelemetry.py`   | Capture, process and store decoded and raw telemetry packets from an Alpha T-Motor ESC.            |
+| `decodeESCTelemetry.py`    | Decode an existing binary files containing raw telemetry packets capture from an Alpha T-Motor ESC |
+| `plot_export_telemetry.py` | Plot telemetry data from a CSV or BIN file using matplotlib.                                       |
+| `plot_telemetry.py`        | Plot telemetry data from a CSV or BIN file.                                                        |
+| `replay_telemetry.py`      | Script to load a binary file and transmit it over serial port to simulate a telemetry stream       |
 
-1. `alphaTelemetry.py`: Main class for telemetry data processing.
-2. `captureESCTelemetry.py`: Script to capture telemetry data from a serial port and save it to both a BIN and CSV file.
-3. `decodeESCTelemetry.py`: Script to decode an existing binary files containing raw telemetry packets captured from an Alpha T-Motor ESC.
-4. `plot_csv_telemetry.py`: Script to load a CSV file containing telemetry data and plot it (examples shown in the `Output` section).
-5. `replay_telemetry.py`: Script to load a BIN file containing telemetry data and replay it over serial port to avoid having to connect an ESC to a device to test the decoding.
-6. (Deprecated) `serial_ESC_Alpha_to_csv.py`: Script to convert a BIN file containing telemetry data to a CSV file.
+Call `--help` to see the available options for each script.
 
 ## Output
 

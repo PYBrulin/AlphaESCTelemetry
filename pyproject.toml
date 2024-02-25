@@ -1,0 +1,44 @@
+[project]
+name = "AlphaESCTelemetry"
+authors = [
+    {name = "Pierre-Yves BRULIN", email = "pierre-yves.brulin9@orange.fr"},
+]
+description = "Simple signal plotter for python using pyqtgraph"
+readme = "README.md"
+requires-python = ">=3.7"
+keywords = ["AlphaESC", "T-Motor"]
+license = {text = "BSD-3-Clause"}
+classifiers = [
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dynamic = ["version"]
+dependencies = [
+    "pyserial",
+    "pandas",
+    "signal_plotter@git+https://github.com/PYBrulin/signal_plotter#egg=main",
+    "tqdm",
+]
+
+[build-system]
+requires = ["setuptools>=64", "setuptools_scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+version_file = "AlphaESCTelemetry/_version.py"
+
+[tool.setuptools]
+packages = ["AlphaESCTelemetry"]
+
+[tool.isort]
+known_first_party = "AlphaESCTelemetry"
+atomic = true
+line_length = 127
+multi_line_output = 3
+use_parentheses = true
+include_trailing_comma = true
+force_grid_wrap = 0
+
+[tool.black]
+skip-string-normalization = true
+line-length = 127

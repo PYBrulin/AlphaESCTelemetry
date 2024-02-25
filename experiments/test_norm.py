@@ -25,7 +25,7 @@ df = pandas.read_csv(
 
 # Fill NaN with the value from last row
 print(df.isna().sum())
-df.fillna(method="pad", inplace=True)
+df.ffill(inplace=True)
 
 if "time" in df.keys():
     # convert column to datetime object
@@ -61,14 +61,10 @@ df_copy["rxThrottle"] = df["rxThrottle"] / 100
 df_copy["rpm_scaled"] = (df["rpm"] * ((6 * 4.2) / df["voltage"])) / 3000
 df_copy["rpm"] = df_copy["rpm_scaled"] - df_copy["rxThrottle"]
 
-df_copy["busbarCurrent_scaled"] = (
-    df["busbarCurrent"] * ((6 * 4.2) / df["voltage"])
-) / 38.7
+df_copy["busbarCurrent_scaled"] = (df["busbarCurrent"] * ((6 * 4.2) / df["voltage"])) / 38.7
 df_copy["busbarCurrent"] = df_copy["busbarCurrent_scaled"] - df_copy["rxThrottle"]
 
-df_copy["phaseWireCurrent_scaled"] = (
-    df["phaseWireCurrent"] * ((6 * 4.2) / df["voltage"])
-) / 38.7
+df_copy["phaseWireCurrent_scaled"] = (df["phaseWireCurrent"] * ((6 * 4.2) / df["voltage"])) / 38.7
 df_copy["phaseWireCurrent"] = df_copy["phaseWireCurrent_scaled"] - df_copy["rxThrottle"]
 
 

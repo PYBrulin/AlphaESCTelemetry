@@ -5,22 +5,23 @@ Usage:
     python replay_telemetry.py ./file.bin
 """
 
+import argparse
+import logging
 import os
 import sys
 import time
+
 import serial
 import serial.tools.list_ports as port_list
-from AlphaESCTelemetry.alphaTelemetry import ALPHA_ESC_BAUD
-import argparse
 from tqdm import tqdm
+
+from AlphaESCTelemetry.alphaTelemetry import ALPHA_ESC_BAUD
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Transmit a binary file over serial port"
+        description="Script to load a binary file and transmit it over serial port to simulate a telemetry stream",
     )
-    parser.add_argument(
-        "file", metavar="file", type=str, nargs="+", help="file to transmit"
-    )
+    parser.add_argument("file", metavar="file", type=str, nargs="+", help="file to transmit")
     parser.add_argument(
         "--rate",
         metavar="rate",
@@ -31,18 +32,18 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    print("Transmitting file: {}".format(args.file))
-    print("Transmitting at rate: {}".format(args.rate))
+    logging.info("Transmitting file(s): {}".format(args.file))
+    logging.info("Transmitting at rate: {}".format(args.rate))
 
     # Auto detect FTDI cable
     ports = list(port_list.comports())
     port = None
     for p in ports:
-        print(p.device, p.name, p.product, p.serial_number, p.manufacturer)
+        logging.info(f"Device: {p.device}, {p.name}, {p.product}, {p.serial_number}, {p.manufacturer}")
         if p.manufacturer == "FTDI":
             port = p.device
     if port is None:
-        print("No FTDI adapter found")
+        logging.error("No FTDI adapter found")
         sys.exit(1)
 
     serialPort = serial.Serial(
@@ -55,11 +56,11 @@ if __name__ == "__main__":
 
     for f in args.file:
         if not os.path.isfile(f):
-            print("File not found: {}".format(f))
+            logging.error("File not found: {}".format(f))
             continue
 
         if not f.endswith(".bin"):
-            print("File is not a binary file: {}".format(f))
+            logging.error("File is not a binary file: {}".format(f))
             continue
 
         with open(f, "rb") as f_bin:

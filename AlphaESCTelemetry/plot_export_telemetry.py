@@ -5,6 +5,7 @@ Usage:
     python plot_csv_telemetry.py ./file.csv
 """
 
+import logging
 import os
 import sys
 
@@ -12,25 +13,49 @@ import matplotlib.style as mplstyle
 import pandas
 
 mplstyle.use(["fast"])
+import argparse
+
 import matplotlib.pyplot as plt
 
-file = sys.argv[1]
-if not os.path.exists(file):
+from AlphaESCTelemetry.decodeESCTelemetry import decode_binary
+
+parser = argparse.ArgumentParser(description="Plot telemetry data from a CSV or BIN file using matplotlib.")
+parser.add_argument("file", metavar="file", type=str, nargs="+", help="file to plot")
+parser.add_argument("--poles", metavar="poles", type=int, nargs="?", default=21, help="number of poles")
+parser.add_argument(
+    "--decorrupt",
+    metavar="decorrupt",
+    type=bool,
+    nargs="?",
+    default=False,
+    help="decorrupt data by removing invalid values",
+)
+args = parser.parse_args()
+
+if not os.path.exists(args.file):
+    logging.error(f"Error: file `{args.file}` does not exist")
+    sys.exit(1)
+
+if args.file.endswith(".csv"):
+    df = pandas.read_csv(
+        args.file,
+        sep=",",
+        low_memory=False,
+        header=0,
+        dtype=float,
+        encoding="latin-1",
+    )
+elif args.file.endswith(".bin"):
+    logging.info("File is a binary file, decoding...")
+    # Decode binary file
+    df = decode_binary(args.file, poles=args.poles)
+else:
+    logging.error("File format not supported")
     sys.exit(1)
 
 
-df = pandas.read_csv(
-    file,
-    sep=",",
-    low_memory=False,
-    header=0,
-    dtype=float,
-    encoding="latin-1",
-)
-
 # Fill NaN with the value from last row
-print(df.isna().sum())
-df.fillna(method="pad", inplace=True)
+df.ffill(inplace=True)
 
 if "time" in df.keys():
     # convert column to datetime object
@@ -46,21 +71,22 @@ if "time" in df.keys():
         pass
 
 # Remove corrputed data
-# invalid_statusCode = df[df["statusCode"] != 0]
-# print(invalid_statusCode)
-# df.drop(invalid_statusCode.index, inplace=True)
+if args.decorrupt:
+    invalid_statusCode = df[df["statusCode"] != 0]
+    logging.info(invalid_statusCode)
+    df.drop(invalid_statusCode.index, inplace=True)
 
-# invalid_outputThrottle = df[df["outputThrottle"] > 100]
-# print(invalid_outputThrottle)
-# df.drop(invalid_outputThrottle.index, inplace=True)
+    invalid_outputThrottle = df[df["outputThrottle"] > 100]
+    logging.info(invalid_outputThrottle)
+    df.drop(invalid_outputThrottle.index, inplace=True)
 
-# invalid_busbarCurrent = df[df["busbarCurrent"] > 65000]
-# print(invalid_busbarCurrent)
-# df.drop(invalid_busbarCurrent.index, inplace=True)
+    invalid_busbarCurrent = df[df["busbarCurrent"] > 150]
+    logging.info(invalid_busbarCurrent)
+    df.drop(invalid_busbarCurrent.index, inplace=True)
 
-# invalid_phaseWireCurrent = df[df["phaseWireCurrent"] == 65535]
-# print(invalid_phaseWireCurrent)
-# df.drop(invalid_phaseWireCurrent.index, inplace=True)
+    invalid_phaseWireCurrent = df[df["phaseWireCurrent"] > 150]
+    logging.info(invalid_phaseWireCurrent)
+    df.drop(invalid_phaseWireCurrent.index, inplace=True)
 
 if "time" in df.keys():
     df.set_index("time", inplace=True)  # set column 'time' to index
@@ -80,7 +106,7 @@ df["busbarCurrent_filtered"] = df["busbarCurrent"].ewm(span=50, adjust=False).me
 
 
 # Save formatted CSV
-df.to_csv(os.path.join(os.path.dirname(file), "out.csv"))
+df.to_csv(os.path.join(os.path.dirname(args.file), "out.csv"))
 
 
 def highlight(indices, ax):
@@ -98,7 +124,7 @@ def highlight(indices, ax):
 
 # Display data
 fig, ax = plt.subplots(2, 2, sharex=True, sharey=False)
-fig.suptitle("ESC Telemetry : " + os.path.basename(file), fontsize=16)
+fig.suptitle("ESC Telemetry : " + os.path.basename(args.file), fontsize=16)
 plt.get_current_fig_manager().window.showMaximized()
 
 i = 1
@@ -118,12 +144,8 @@ i += 1
 plt.subplot(2, 2, i)
 df["voltage"].plot(label="Voltage [V]", legend=True, ylim=(20, 26))
 df["voltage_filtered"].plot(label="Filtered voltage [V]", legend=True, ylim=(20, 26))
-df["busbarCurrent"].plot(
-    secondary_y=True, label="busbarCurrent [A]", legend=True, ylim=(0, 60)
-)
-df["busbarCurrent_filtered"].plot(
-    secondary_y=True, label="Filtered busbarCurrent [A]", legend=True, ylim=(0, 60)
-)
+df["busbarCurrent"].plot(secondary_y=True, label="busbarCurrent [A]", legend=True, ylim=(0, 60))
+df["busbarCurrent_filtered"].plot(secondary_y=True, label="Filtered busbarCurrent [A]", legend=True, ylim=(0, 60))
 # highlight(df[df["statusCode"] > 0].index, ax)
 plt.xlabel("time")
 plt.title("Battery input")

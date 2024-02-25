@@ -40,7 +40,7 @@ def read_file(file) -> pandas.DataFrame:
 
     # Fill NaN with the value from last row
     print(df.isna().sum())
-    df.fillna(method="pad", inplace=True)
+    df.ffill(inplace=True)
 
     if "time" in df.keys():
         # convert column to datetime object
@@ -108,9 +108,7 @@ x_fit = numpy.linspace(min(x), max(x), 100)
 y_fit = a_rpm * x_fit**2 + b_rpm * x_fit
 
 plt.plot(x, y_scale, "o", alpha=0.2, label="scaled_data")
-plt.plot(
-    x_fit, y_fit, "-", label=f"scaled_curve_fit (y = {a_rpm:.1f}x^2 + {b_rpm:.1f}x)"
-)
+plt.plot(x_fit, y_fit, "-", label=f"scaled_curve_fit (y = {a_rpm:.1f}x^2 + {b_rpm:.1f}x)")
 
 plt.plot(
     x,
@@ -193,9 +191,7 @@ x_fit = numpy.linspace(min(x), max(x), 100)
 y_fit = a_rpm * x_fit**2 + b_rpm * x_fit
 
 plt.plot(x, y_scale, "o", alpha=0.2, label="scaled_data")
-plt.plot(
-    x_fit, y_fit, "-", label=f"scaled_curve_fit (y = {a_rpm:.1f}x^2 + {b_rpm:.1f}x)"
-)
+plt.plot(x_fit, y_fit, "-", label=f"scaled_curve_fit (y = {a_rpm:.1f}x^2 + {b_rpm:.1f}x)")
 plt.plot(
     x,
     y_scale - (a_rpm * x**2 + b_rpm * x),
@@ -282,9 +278,7 @@ x_fit = numpy.linspace(min(x), max(x), 100)
 y_fit = a_rpm * x_fit**2 + b_rpm * x_fit
 
 plt.plot(x, y_scale, "o", alpha=0.2, label="scaled_data")
-plt.plot(
-    x_fit, y_fit, "-", label=f"scaled_curve_fit (y = {a_rpm:.1f}x^2 + {b_rpm:.1f}x)"
-)
+plt.plot(x_fit, y_fit, "-", label=f"scaled_curve_fit (y = {a_rpm:.1f}x^2 + {b_rpm:.1f}x)")
 plt.plot(
     x,
     y_scale - (a_rpm * x**2 + b_rpm * x),
