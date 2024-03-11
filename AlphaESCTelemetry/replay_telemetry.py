@@ -15,7 +15,7 @@ import serial
 import serial.tools.list_ports as port_list
 from tqdm import tqdm
 
-from AlphaESCTelemetry.alphaTelemetry import ALPHA_ESC_BAUD
+from AlphaESCTelemetry.alphaTelemetry import ALPHA_ESC_B1, ALPHA_ESC_BAUD
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -27,8 +27,8 @@ if __name__ == "__main__":
         metavar="rate",
         type=float,
         nargs="?",
-        default=-1,
-        help="rate in seconds to transmit data",
+        default=1,
+        help="Rate multiplier to transmit the file at. Default is 1.0 (real time)",
     )
     args = parser.parse_args()
 
@@ -63,9 +63,16 @@ if __name__ == "__main__":
             logging.error("File is not a binary file: {}".format(f))
             continue
 
+        _time = time.perf_counter()
+        _rate = 1 / 20
+
         with open(f, "rb") as f_bin:
             data = f_bin.read()
-            for b in tqdm(data):
+            for b in tqdm(data, unit="B", unit_scale=True, smoothing=0):
+                if b is ALPHA_ESC_B1:
+                    # If the byte is the start of a frame, wait for the rate limitation
+                    while time.perf_counter() - _time < _rate / args.rate:
+                        pass
+                    _time = time.perf_counter()
+
                 serialPort.write(b.to_bytes(1, byteorder="little"))
-                if args.rate > 0:
-                    time.sleep(args.rate)

@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 from AlphaESCTelemetry.decodeESCTelemetry import decode_binary
 
 parser = argparse.ArgumentParser(description="Plot telemetry data from a CSV or BIN file using matplotlib.")
-parser.add_argument("file", metavar="file", type=str, nargs="+", help="file to plot")
+parser.add_argument("file", metavar="file", type=str, help="file to plot")
 parser.add_argument("--poles", metavar="poles", type=int, nargs="?", default=21, help="number of poles")
 parser.add_argument(
     "--decorrupt",
@@ -44,6 +44,7 @@ if args.file.endswith(".csv"):
         header=0,
         dtype=float,
         encoding="latin-1",
+        parse_dates=False,
     )
 elif args.file.endswith(".bin"):
     logging.info("File is a binary file, decoding...")
@@ -98,7 +99,11 @@ list_inputs = df.columns.values.tolist()
 # Apply proportionnal gains
 df["busbarCurrent"] = df["busbarCurrent"].apply(lambda x: x)
 df["phaseWireCurrent"] = df["phaseWireCurrent"].apply(lambda x: x)
-df["voltage"] = df["voltage"].apply(lambda x: x)
+
+if "voltage" in df.keys():  # Old syntax
+    df["busbarVoltage"] = df["voltage"].apply(lambda x: x)
+else:
+    df["busbarVoltage"] = df["busbarVoltage"].apply(lambda x: x)
 
 # Filter data
 df["voltage_filtered"] = df["voltage"].ewm(span=50, adjust=False).mean()

@@ -9,8 +9,10 @@ from signal_plotter.plot_window import plot_window
 
 from AlphaESCTelemetry.decodeESCTelemetry import decode_binary
 
+logging.basicConfig(level=logging.INFO)
+
 parser = argparse.ArgumentParser(description="""Plot telemetry data from a CSV or BIN file.""")
-parser.add_argument("file", metavar="file", type=str, nargs="+", help="file to plot")
+parser.add_argument("file", metavar="file", type=str, help="file to plot")
 parser.add_argument("--poles", metavar="poles", type=int, nargs="?", default=21, help="number of poles")
 parser.add_argument(
     "--decorrupt",
@@ -32,8 +34,9 @@ if args.file.endswith(".csv"):
         sep=",",
         low_memory=False,
         header=0,
-        dtype=float,
         encoding="latin-1",
+        parse_dates=False,
+        dtype={"time": str},  # read "time" column as string
     )
 elif args.file.endswith(".bin"):
     logging.info("File is a binary file, decoding...")
@@ -48,17 +51,28 @@ else:
 df.ffill(inplace=True)
 
 if "time" in df.keys():
+    logging.info("Time column found")
+    df['time'] = df['time'].astype(float)
+    print(df['time'].head(5))
+
     # convert column to datetime object
     df["time"] = pandas.to_datetime(df["time"], unit="s")
     df["timeFormat"] = df["time"].dt.strftime("%Y-%m-%d %H%M%S")
+    print(df['time'].head(5))
 
     # Hypothesis: The messages are sent at the frequency of the motor rotation.
     # Result: Wrong, or the messages are not captured fast enough by the host PC
-    df["time_diff"] = df["time"].diff(-1).dt.total_seconds().div(60)
+    df["time_diff"] = df["time"].diff().dt.total_seconds()
+    print(df['time_diff'].head(5))
+
     try:
         df["time_freq"] = df["time_diff"].apply(lambda x: 1 / abs(x))
     except ZeroDivisionError:
         pass
+
+    # Output the frequency
+    logging.info(f"Frequency: {df['time_freq'].mean()} Hz")
+
 
 # Remove corrputed data
 if args.decorrupt:
@@ -83,21 +97,25 @@ if "time" in df.keys():
 else:
     df.set_index("baleNumber", inplace=True)  # set column 'time' to index
 
-list_inputs = df.columns.values.tolist()
 
 # Apply proportionnal gains
 df["busbarCurrent"] = df["busbarCurrent"].apply(lambda x: x)
 df["phaseWireCurrent"] = df["phaseWireCurrent"].apply(lambda x: x)
-df["voltage"] = df["voltage"].apply(lambda x: x)
+
+if "voltage" in df.keys():  # Old syntax
+    df["busbarVoltage"] = df["voltage"].apply(lambda x: x)
+else:
+    df["busbarVoltage"] = df["busbarVoltage"].apply(lambda x: x)
 
 # Filter data
-df["voltage_filtered"] = df["voltage"].ewm(span=50, adjust=False).mean()
+df["busbarVoltage_filtered"] = df["busbarVoltage"].ewm(span=50, adjust=False).mean()
 df["busbarCurrent_filtered"] = df["busbarCurrent"].ewm(span=50, adjust=False).mean()
 
 # Save formatted CSV
 df.to_csv(os.path.join(os.path.dirname(args.file), "out.csv"))
 
 # Format data
+list_inputs = df.columns.values.tolist()
 items = {
     key: {
         "x": numpy.ravel(df.index),

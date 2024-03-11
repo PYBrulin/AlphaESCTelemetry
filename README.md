@@ -5,6 +5,8 @@ Python library to read, analyse and replay telemetry data from T-Motor Alpha ESC
 Main source of information regarding this telemetry and the Alpha ESC series comes from the page:
 https://wiki.paparazziuav.org/wiki/Alpha_esc_with_telemetry_output
 
+![Alpha_ESC_Serial_out_format](https://wiki.paparazziuav.org/w/images/5/52/Alpha_ESC_Serial_out_format.jpg)
+
 ## Installation
 
 As a python package:
