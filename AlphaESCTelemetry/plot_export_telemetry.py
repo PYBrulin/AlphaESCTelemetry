@@ -106,7 +106,7 @@ else:
     df["busbarVoltage"] = df["busbarVoltage"].apply(lambda x: x)
 
 # Filter data
-df["voltage_filtered"] = df["voltage"].ewm(span=50, adjust=False).mean()
+df["busbarVoltage_filtered"] = df["busbarVoltage"].ewm(span=50, adjust=False).mean()
 df["busbarCurrent_filtered"] = df["busbarCurrent"].ewm(span=50, adjust=False).mean()
 
 
@@ -144,11 +144,11 @@ plt.xlabel("time")
 plt.title("rxThrottle VS outputThrottle")
 plt.grid(True)
 
-# voltage
+# busbarVoltage
 i += 1
 plt.subplot(2, 2, i)
-df["voltage"].plot(label="Voltage [V]", legend=True, ylim=(20, 26))
-df["voltage_filtered"].plot(label="Filtered voltage [V]", legend=True, ylim=(20, 26))
+df["busbarVoltage"].plot(label="Voltage [V]", legend=True, ylim=(20, 26))
+df["busbarVoltage_filtered"].plot(label="Filtered voltage [V]", legend=True, ylim=(20, 26))
 df["busbarCurrent"].plot(secondary_y=True, label="busbarCurrent [A]", legend=True, ylim=(0, 60))
 df["busbarCurrent_filtered"].plot(secondary_y=True, label="Filtered busbarCurrent [A]", legend=True, ylim=(0, 60))
 # highlight(df[df["statusCode"] > 0].index, ax)
@@ -161,7 +161,7 @@ i += 1
 plt.subplot(2, 2, i)
 df["busbarCurrent"].plot(label="busbarCurrent [A]", legend=True, ylim=(0, 60))
 df["phaseWireCurrent"].plot(label="phaseWireCurrent [A]", legend=True, ylim=(0, 60))
-((df["phaseWireCurrent"] / (3**0.5)) * (6 * 4.2 / df["voltage"])).plot(
+((df["phaseWireCurrent"] / (3**0.5)) * (6 * 4.2 / df["busbarVoltage"])).plot(
     label="phaseWireCurrent /(3**.5) [A]", legend=True, ylim=(0, 60)
 )
 

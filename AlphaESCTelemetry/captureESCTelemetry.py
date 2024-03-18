@@ -24,8 +24,7 @@ if __name__ == "__main__":
         description="""Capture, process and store decoded and raw telemetry packets from an Alpha T-Motor ESC.
         Generates one binary file containing raw telemetry data and one CSV file containing decoded state packets."""
     )
-    parser.add_argument("file", metavar="file", type=str, nargs="+", help="file to transmit")
-    parser.add_argument("--poles", metavar="poles", type=int, nargs="?", default=21, help="number of poles")
+    parser.add_argument("poles", metavar="poles", type=int, nargs="?", default=21, help="number of poles")
     args = parser.parse_args()
 
     # Auto detect FTDI cable
@@ -84,7 +83,7 @@ if __name__ == "__main__":
                         _escTelem["rxThrottle"] = ae.rxThrottle
                         _escTelem["outputThrottle"] = ae.outputThrottle
                         _escTelem["rpm"] = ae.rpm
-                        _escTelem["voltage"] = ae.voltage
+                        _escTelem["busbarVoltage"] = ae.busbarVoltage
                         _escTelem["busbarCurrent"] = ae.busbarCurrent
                         _escTelem["phaseWireCurrent"] = ae.phaseWireCurrent
                         _escTelem["mosfetTemp"] = ae.mosfetTemp

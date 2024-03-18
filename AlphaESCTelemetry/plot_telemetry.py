@@ -16,10 +16,7 @@ parser.add_argument("file", metavar="file", type=str, help="file to plot")
 parser.add_argument("--poles", metavar="poles", type=int, nargs="?", default=21, help="number of poles")
 parser.add_argument(
     "--decorrupt",
-    metavar="decorrupt",
-    type=bool,
-    nargs="?",
-    default=False,
+    action="store_true",
     help="decorrupt data by removing invalid values",
 )
 args = parser.parse_args()

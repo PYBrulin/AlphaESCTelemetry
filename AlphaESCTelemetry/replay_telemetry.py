@@ -71,8 +71,9 @@ if __name__ == "__main__":
             for b in tqdm(data, unit="B", unit_scale=True, smoothing=0):
                 if b is ALPHA_ESC_B1:
                     # If the byte is the start of a frame, wait for the rate limitation
-                    while time.perf_counter() - _time < _rate / args.rate:
-                        pass
-                    _time = time.perf_counter()
+                    if args.rate != 0:
+                        while time.perf_counter() - _time < _rate / args.rate:
+                            pass
+                        _time = time.perf_counter()
 
                 serialPort.write(b.to_bytes(1, byteorder="little"))

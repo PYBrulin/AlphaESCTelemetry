@@ -38,7 +38,7 @@ def decode_binary(file_path: str, verbose: bool = False, poles=21) -> pandas.Dat
                 escTelemetry["rxThrottle"] = (int((serialArray[6] << 8) + serialArray[7])) * 100.0 / 1024.0
                 escTelemetry["outputThrottle"] = int((serialArray[8] << 8) + serialArray[9]) * 100.0 / 1024.0
                 escTelemetry["rpm"] = int((serialArray[10] << 8) + serialArray[11]) * 10.0 / poles
-                escTelemetry["voltage"] = int((serialArray[12] << 8) + serialArray[13]) / 10.0
+                escTelemetry["busbarVoltage"] = int((serialArray[12] << 8) + serialArray[13]) / 10.0
                 # escTelemetry["busbarCurrent"] = int_val = int.from_bytes(serialArray[14:16], "little", signed=True)
                 escTelemetry["busbarCurrent"] = (int(serialArray[14] << 8) + serialArray[15]) / 64.0
                 # escTelemetry["phaseWireCurrent"] = int.from_bytes(serialArray[16:18], "little", signed=True)
@@ -126,7 +126,7 @@ if __name__ == "__main__":
                         print("rxThrottle       : {} %".format(ae.rxThrottle))
                         print("outputThrottle   : {} %".format(ae.outputThrottle))
                         print("rpm              : {} RPM".format(ae.rpm))
-                        print("voltage          : {} V".format(ae.voltage))
+                        print("busbarVoltage    : {} V".format(ae.busbarVoltage))
                         print("busbarCurrent    : {} A".format(ae.busbarCurrent))
                         print("phaseWireCurrent : {} A".format(ae.phaseWireCurrent))
                         print("mosfetTemp       : {} °C".format(ae.mosfetTemp))
@@ -139,7 +139,7 @@ if __name__ == "__main__":
                     _escTelem["rxThrottle"] = ae.rxThrottle
                     _escTelem["outputThrottle"] = ae.outputThrottle
                     _escTelem["rpm"] = ae.rpm
-                    _escTelem["voltage"] = ae.voltage
+                    _escTelem["busbarVoltage"] = ae.busbarVoltage
                     _escTelem["busbarCurrent"] = ae.busbarCurrent
                     _escTelem["phaseWireCurrent"] = ae.phaseWireCurrent
                     _escTelem["mosfetTemp"] = ae.mosfetTemp

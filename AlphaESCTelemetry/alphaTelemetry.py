@@ -1,6 +1,11 @@
 import logging
 from typing import Union
 
+# Set logger name to be "AlphaTelemetry"
+logger = logging.getLogger("AlphaTelemetry")
+# Set logging level to DEBUG
+logger.setLevel(logging.DEBUG)
+
 # fmt: off
 # Note: deactivate black formatter temporarily
 # temperature decoding table
@@ -60,7 +65,7 @@ class AlphaTelemetry:
         self._rxThrottle = 0
         self._outputThrottle = 0
         self._rpm = 0
-        self._voltage = 0
+        self._busbarVoltage = 0
         self._busbarCurrent = 0
         self._phaseWireCurrent = 0
         self._mosfetTemp = 0
@@ -90,9 +95,9 @@ class AlphaTelemetry:
         return self._rpm
 
     @property
-    def voltage(self) -> Union[int, float]:
-        """Input voltage of the ESC"""
-        return self._voltage
+    def busbarVoltage(self) -> Union[int, float]:
+        """Input busbarVoltage of the ESC"""
+        return self._busbarVoltage
 
     @property
     def busbarCurrent(self) -> Union[int, float]:
@@ -134,7 +139,7 @@ class AlphaTelemetry:
 
     # decodes raw temperature reading
     @classmethod
-    def temperature_decode(cls, temp_raw: int) -> int:
+    def temperature_decode(cls, temp_raw: int, integer_only: bool = True) -> int:
         """Decodes the temperature by matching the value returned by the ESC
         in the mapping table temp_table
 
@@ -145,11 +150,14 @@ class AlphaTelemetry:
             int: Real temperature in Celsius
         """
         if temp_raw in temp_table.keys():
+            if integer_only:
+                return int(temp_table[temp_raw])
             return temp_table[temp_raw]
 
         return 130
 
-    def calc_checksum(self, data: bytearray) -> int:
+    @classmethod
+    def calc_checksum(cls, data: bytearray) -> int:
         """Calculate bale checksum
 
         Args:
@@ -197,24 +205,54 @@ class AlphaTelemetry:
         """Process the buffer and decodes values stored in packet.
         This function should not be called manually.
         """
-        # check packet integrity
-        checksum_received = (self.rxbuf[23] << 8) + self.rxbuf[22]
-        checksum_calculated = self.calc_checksum(self.rxbuf)
 
-        if checksum_received == checksum_calculated:
-            self._initialValue = (self.rxbuf[0] << 8) + (self.rxbuf[1] << 16) + (self.rxbuf[2] << 24) + self.rxbuf[3]
-            self._baleNumber = (self.rxbuf[4] << 8) + self.rxbuf[5]
-            self._rxThrottle = int((self.rxbuf[6] << 8) + self.rxbuf[7]) * 100.0 / 1024.0
-            self._outputThrottle = int((self.rxbuf[8] << 8) + self.rxbuf[9]) * 100.0 / 1024.0
-            self._rpm = int((self.rxbuf[10] << 8) + self.rxbuf[11]) * 10.0 / self.POLES_N
-            self._voltage = int((self.rxbuf[12] << 8) + self.rxbuf[13]) / 10.0
-            self._busbarCurrent = int((self.rxbuf[14] << 8) + self.rxbuf[15]) / 64.0
-            self._phaseWireCurrent = int((self.rxbuf[16] << 8) + self.rxbuf[17]) / 64.0
-            self._mosfetTemp = self.temperature_decode(self.rxbuf[18])
-            self._capacitorTemp = self.temperature_decode(self.rxbuf[19])
-            self._statusCode = (self.rxbuf[20] << 8) + self.rxbuf[21]
-            self._fault = self._statusCode != 0x00
+        res = self.decodeBuffer(self.rxbuf, poles=self.POLES_N, integer_only=False)
+        if res is not None:
+            self._initialValue = res[0]
+            self._baleNumber = res[1]
+            self._rxThrottle = res[2]
+            self._outputThrottle = res[3]
+            self._rpm = res[4]
+            self._busbarVoltage = res[5]
+            self._busbarCurrent = res[6]
+            self._phaseWireCurrent = res[7]
+            self._mosfetTemp = res[8]
+            self._capacitorTemp = res[9]
+            self._statusCode = res[10]
+            self._fault = res[10] != 0x0
             self._ready = True
 
+    @classmethod
+    def decodeBuffer(cls, buffer, poles: int = 1, integer_only: bool = True):
+        # check packet integrity
+        checksum_received = (buffer[23] << 8) + buffer[22]
+        checksum_calculated = cls.calc_checksum(buffer)
+
+        if checksum_received == checksum_calculated:
+            _initialValue = (buffer[0] << 8) + (buffer[1] << 16) + (buffer[2] << 24) + buffer[3]
+            _baleNumber = (buffer[4] << 8) + buffer[5]
+            _rxThrottle = int((buffer[6] << 8) + buffer[7]) * 100.0 / 1024.0
+            _outputThrottle = int((buffer[8] << 8) + buffer[9]) * 100.0 / 1024.0
+            _rpm = int((buffer[10] << 8) + buffer[11]) * 10.0 / poles
+            _busbarVoltage = int((buffer[12] << 8) + buffer[13]) / 10.0
+            _busbarCurrent = int((buffer[14] << 8) + buffer[15]) / 64.0
+            _phaseWireCurrent = int((buffer[16] << 8) + buffer[17]) / 64.0
+            _mosfetTemp = cls.temperature_decode(buffer[18], integer_only)
+            _capacitorTemp = cls.temperature_decode(buffer[19], integer_only)
+            _statusCode = (buffer[20] << 8) + buffer[21]
+            return [
+                _initialValue,
+                _baleNumber,
+                _rxThrottle,
+                _outputThrottle,
+                _rpm,
+                _busbarVoltage,
+                _busbarCurrent,
+                _phaseWireCurrent,
+                _mosfetTemp,
+                _capacitorTemp,
+                _statusCode,
+            ]
         else:
-            logging.error("Checksum differs. Received: {} / Computed: {}".format(checksum_received, checksum_calculated))
+            logger.error("Checksum differs. Received: {} / Computed: {}".format(checksum_received, checksum_calculated))
+            return None
