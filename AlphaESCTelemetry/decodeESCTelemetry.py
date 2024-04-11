@@ -31,21 +31,23 @@ def decode_binary(file_path: str, verbose: bool = False, poles=21) -> pandas.Dat
 
                 # sys.stdout.flush()
 
-                escTelemetry["initialValue"] = (
-                    (serialArray[0] << 8) + (serialArray[1] << 16) + (serialArray[2] << 24) + serialArray[3]
-                )
-                escTelemetry["baleNumber"] = (serialArray[4] << 8) + serialArray[5]
-                escTelemetry["rxThrottle"] = (int((serialArray[6] << 8) + serialArray[7])) * 100.0 / 1024.0
-                escTelemetry["outputThrottle"] = int((serialArray[8] << 8) + serialArray[9]) * 100.0 / 1024.0
-                escTelemetry["rpm"] = int((serialArray[10] << 8) + serialArray[11]) * 10.0 / poles
-                escTelemetry["busbarVoltage"] = int((serialArray[12] << 8) + serialArray[13]) / 10.0
-                # escTelemetry["busbarCurrent"] = int_val = int.from_bytes(serialArray[14:16], "little", signed=True)
-                escTelemetry["busbarCurrent"] = (int(serialArray[14] << 8) + serialArray[15]) / 64.0
-                # escTelemetry["phaseWireCurrent"] = int.from_bytes(serialArray[16:18], "little", signed=True)
-                escTelemetry["phaseWireCurrent"] = int((serialArray[16] << 8) + serialArray[17]) / 64.0
-                escTelemetry["mosfetTemp"] = AlphaTelemetry.temperature_decode(serialArray[18])
-                escTelemetry["capacitorTemp"] = AlphaTelemetry.temperature_decode(serialArray[19])
-                escTelemetry["statusCode"] = (serialArray[20] << 8) + serialArray[21]
+                # Decode
+                raw_data = AlphaTelemetry.decodeBuffer(serialArray, poles)
+                if raw_data is None:
+                    continue
+
+                escTelemetry = {}
+                escTelemetry["initialValue"] = raw_data[0]
+                escTelemetry["baleNumber"] = raw_data[1]
+                escTelemetry["rxThrottle"] = raw_data[2]
+                escTelemetry["outputThrottle"] = raw_data[3]
+                escTelemetry["rpm"] = raw_data[4]
+                escTelemetry["busbarVoltage"] = raw_data[5]
+                escTelemetry["busbarCurrent"] = raw_data[6]
+                escTelemetry["phaseWireCurrent"] = raw_data[7]
+                escTelemetry["mosfetTemp"] = raw_data[8]
+                escTelemetry["capacitorTemp"] = raw_data[9]
+                escTelemetry["statusCode"] = raw_data[10]
                 escTelemetry["fault"] = escTelemetry["statusCode"] != 0x00
 
                 if escTelemetry["initialValue"] != 18258690:
