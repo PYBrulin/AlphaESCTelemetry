@@ -18,6 +18,8 @@ from tqdm import tqdm
 from AlphaESCTelemetry.alphaTelemetry import ALPHA_ESC_B1, ALPHA_ESC_BAUD
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
     parser = argparse.ArgumentParser(
         description="Script to load a binary file and transmit it over serial port to simulate a telemetry stream",
     )
@@ -45,6 +47,8 @@ if __name__ == "__main__":
     if port is None:
         logging.error("No FTDI adapter found")
         sys.exit(1)
+
+    logging.info(f"Using port: {port}")
 
     serialPort = serial.Serial(
         port=port,
@@ -76,4 +80,5 @@ if __name__ == "__main__":
                             pass
                         _time = time.perf_counter()
 
+                # print(b, end=' ')
                 serialPort.write(b.to_bytes(1, byteorder="little"))
