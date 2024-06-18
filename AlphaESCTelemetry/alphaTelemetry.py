@@ -240,6 +240,13 @@ class AlphaTelemetry:
             _mosfetTemp = cls.temperature_decode(buffer[18], integer_only)
             _capacitorTemp = cls.temperature_decode(buffer[19], integer_only)
             _statusCode = (buffer[20] << 8) + buffer[21]
+
+            # Check data (These are arbitrary checks to ensure data integrity)
+            _rxThrottle = 0.0 if _rxThrottle > 100 else _rxThrottle
+            _outputThrottle = 0.0 if _outputThrottle > 100 else _outputThrottle
+            _busbarCurrent = 0.0 if _busbarCurrent > 150 else _busbarCurrent
+            _phaseWireCurrent = 0.0 if _phaseWireCurrent > 150 else _phaseWireCurrent
+
             return [
                 _initialValue,
                 _baleNumber,
